@@ -1,0 +1,1500 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Kytos Commerce API",
+    "description": "Mock REST API for an e-commerce platform covering product, cart, payment, and user profile management.",
+    "version": "1.0.0",
+    "termsOfService": "https://example.com/terms",
+    "contact": {
+      "name": "Kytos API Support",
+      "url": "https://example.com/support",
+      "email": "api-support@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "externalDocs": {
+    "description": "Integration guide documentation",
+    "url": "https://example.com/docs/commerce-api"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.example.com/v1",
+      "description": "Staging server"
+    },
+    {
+      "url": "http://localhost:3000/v1",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Products",
+      "description": "Product catalog management"
+    },
+    {
+      "name": "Cart",
+      "description": "User shopping cart management"
+    },
+    {
+      "name": "Payment",
+      "description": "Payment processing and transaction history"
+    },
+    {
+      "name": "Profile",
+      "description": "User profile and address management"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "List products",
+        "description": "Returns a paginated list of products with optional category filtering.",
+        "operationId": "listProducts",
+        "parameters": [
+        { "$ref": "#/components/parameters/PageParam" },
+        { "$ref": "#/components/parameters/LimitParam" },
+        { "$ref": "#/components/parameters/CategoryParam" },
+        { "$ref": "#/components/parameters/SearchParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProductListResponse" },
+                "example": {
+                  "data": [
+                    {
+                      "id": "prod_8f3a2b1c",
+                      "name": "Bluetooth Headphones Pro X",
+                      "slug": "bluetooth-headphones-pro-x",
+                      "description": "Active noise-cancelling headphones with 30-hour battery life.",
+                      "price": 2490000,
+                      "currency": "VND",
+                      "category": "electronics",
+                      "stock": 128,
+                      "sku": "SKU-BT-PROX-001",
+                      "images": [
+                        "https://cdn.example.com/products/pro-x-1.jpg"
+                      ],
+                      "status": "active",
+                      "createdAt": "2025-11-03T08:15:22Z",
+                      "updatedAt": "2026-01-18T14:30:00Z"
+                    },
+                    {
+                      "id": "prod_7e2d9a4f",
+                      "name": "Organic cotton t-shirt",
+                      "slug": "organic-cotton-tshirt",
+                      "description": "100% organic cotton, regular fit.",
+                      "price": 389000,
+                      "currency": "VND",
+                      "category": "fashion",
+                      "stock": 450,
+                      "sku": "SKU-TSH-ORG-042",
+                      "images": [
+                        "https://cdn.example.com/products/tshirt-org-white.jpg"
+                      ],
+                      "status": "active",
+                      "createdAt": "2025-09-12T10:00:00Z",
+                      "updatedAt": "2026-02-01T09:12:45Z"
+                    }
+                  ],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 2,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Products"],
+        "summary": "Create a new product",
+        "description": "Creates a new product in the system. Requires admin privileges.",
+        "operationId": "createProduct",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProductRequest" },
+              "example": {
+                "name": "Keychron K2 Mechanical Keyboard",
+                "description": "Mechanical keyboard with Gateron Brown switches, 75% layout.",
+                "price": 1890000,
+                "currency": "VND",
+                "category": "electronics",
+                "stock": 75,
+                "sku": "SKU-KB-K2-2026",
+                "images": [
+                  "https://cdn.example.com/products/keychron-k2.jpg"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created successfully",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created product",
+                "schema": { "type": "string", "format": "uri" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Product" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/products/{productId}": {
+      "get": {
+        "tags": ["Products"],
+        "summary": "Get product details",
+        "operationId": "getProduct",
+        "parameters": [{ "$ref": "#/components/parameters/ProductIdParam" }],
+        "responses": {
+          "200": {
+            "description": "Product details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Product" },
+                "example": {
+                  "id": "prod_8f3a2b1c",
+                  "name": "Bluetooth Headphones Pro X",
+                  "slug": "bluetooth-headphones-pro-x",
+                  "description": "Active noise-cancelling headphones with 30-hour battery life.",
+                  "price": 2490000,
+                  "currency": "VND",
+                  "category": "electronics",
+                  "stock": 128,
+                  "sku": "SKU-BT-PROX-001",
+                  "images": [
+                    "https://cdn.example.com/products/pro-x-1.jpg"
+                  ],
+                  "status": "active",
+                  "createdAt": "2025-11-03T08:15:22Z",
+                  "updatedAt": "2026-01-18T14:30:00Z"
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Products"],
+        "summary": "Replace product",
+        "operationId": "replaceProduct",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/ProductIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProductRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Product" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "patch": {
+        "tags": ["Products"],
+        "summary": "Partially update product",
+        "operationId": "patchProduct",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/ProductIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchProductRequest" },
+              "example": {
+                "price": 2290000,
+                "stock": 95
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product partially updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Product" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Products"],
+        "summary": "Delete product",
+        "operationId": "deleteProduct",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/ProductIdParam" }],
+        "responses": {
+          "204": { "description": "Product deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "tags": ["Cart"],
+        "summary": "Get current cart",
+        "operationId": "getCart",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User shopping cart",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Cart" },
+                "example": {
+                  "id": "cart_a1b2c3d4",
+                  "userId": "user_9x8y7z6w",
+                  "items": [
+                    {
+                      "id": "item_f4e5d6c7",
+                      "productId": "prod_8f3a2b1c",
+                      "productName": "Bluetooth Headphones Pro X",
+                      "quantity": 1,
+                      "unitPrice": 2490000,
+                      "subtotal": 2490000
+                    },
+                    {
+                      "id": "item_b8a9c0d1",
+                      "productId": "prod_7e2d9a4f",
+                      "productName": "Organic cotton t-shirt",
+                      "quantity": 2,
+                      "unitPrice": 389000,
+                      "subtotal": 778000
+                    }
+                  ],
+                  "itemCount": 3,
+                  "subtotal": 3268000,
+                  "discount": 268000,
+                  "total": 3000000,
+                  "currency": "VND",
+                  "updatedAt": "2026-06-10T16:45:30Z"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Cart"],
+        "summary": "Clear entire cart",
+        "operationId": "clearCart",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": { "description": "Cart cleared" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/cart/items": {
+      "post": {
+        "tags": ["Cart"],
+        "summary": "Add product to cart",
+        "operationId": "addCartItem",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddCartItemRequest" },
+              "example": {
+                "productId": "prod_8f3a2b1c",
+                "quantity": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product added to cart",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CartItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/cart/items/{itemId}": {
+      "get": {
+        "tags": ["Cart"],
+        "summary": "Get cart item details",
+        "operationId": "getCartItem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/CartItemIdParam" }],
+        "responses": {
+          "200": {
+            "description": "Cart item details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CartItem" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Cart"],
+        "summary": "Replace cart item",
+        "operationId": "replaceCartItem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/CartItemIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateCartItemRequest" },
+              "example": {
+                "quantity": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cart item updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CartItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "patch": {
+        "tags": ["Cart"],
+        "summary": "Partially update cart item",
+        "operationId": "patchCartItem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/CartItemIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchCartItemRequest" },
+              "example": {
+                "quantity": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cart item partially updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CartItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Cart"],
+        "summary": "Remove item from cart",
+        "operationId": "deleteCartItem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/CartItemIdParam" }],
+        "responses": {
+          "204": { "description": "Item removed from cart" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/payments": {
+      "get": {
+        "tags": ["Payment"],
+        "summary": "List payment history",
+        "operationId": "listPayments",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          { "$ref": "#/components/parameters/PaymentStatusParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment transaction list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentListResponse" },
+                "example": {
+                  "data": [
+                    {
+                      "id": "pay_m3n4o5p6",
+                      "orderId": "ord_q7r8s9t0",
+                      "userId": "user_9x8y7z6w",
+                      "amount": 3000000,
+                      "currency": "VND",
+                      "method": "credit_card",
+                      "status": "completed",
+                      "transactionRef": "TXN-20260610-88421",
+                      "paidAt": "2026-06-10T17:02:15Z",
+                      "createdAt": "2026-06-10T17:00:00Z"
+                    }
+                  ],
+                  "pagination": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Payment"],
+        "summary": "Create a new payment",
+        "operationId": "createPayment",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePaymentRequest" },
+              "example": {
+                "orderId": "ord_q7r8s9t0",
+                "amount": 3000000,
+                "currency": "VND",
+                "method": "momo",
+                "returnUrl": "https://shop.example.com/checkout/success",
+                "cancelUrl": "https://shop.example.com/checkout/cancel"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment transaction initiated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Payment" },
+                "example": {
+                  "id": "pay_u1v2w3x4",
+                  "orderId": "ord_q7r8s9t0",
+                  "userId": "user_9x8y7z6w",
+                  "amount": 3000000,
+                  "currency": "VND",
+                  "method": "momo",
+                  "status": "pending",
+                  "paymentUrl": "https://payment.example.com/checkout/pay_u1v2w3x4",
+                  "transactionRef": null,
+                  "paidAt": null,
+                  "createdAt": "2026-06-12T09:30:00Z"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/payments/{paymentId}": {
+      "get": {
+        "tags": ["Payment"],
+        "summary": "Get payment details",
+        "operationId": "getPayment",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/PaymentIdParam" }],
+        "responses": {
+          "200": {
+            "description": "Payment transaction details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Payment" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Payment"],
+        "summary": "Replace payment (admin)",
+        "operationId": "replacePayment",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/PaymentIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePaymentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Payment" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "patch": {
+        "tags": ["Payment"],
+        "summary": "Update payment status",
+        "operationId": "patchPayment",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/PaymentIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchPaymentRequest" },
+              "example": {
+                "status": "completed",
+                "transactionRef": "TXN-20260612-99102"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment status updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Payment" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Payment"],
+        "summary": "Cancel pending payment",
+        "operationId": "cancelPayment",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/PaymentIdParam" }],
+        "responses": {
+          "204": { "description": "Payment cancelled" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get current user profile",
+        "operationId": "getProfile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Profile" },
+                "example": {
+                  "id": "user_9x8y7z6w",
+                  "email": "john.doe@example.com",
+                  "firstName": "John",
+                  "lastName": "Doe",
+                  "phone": "+84901234567",
+                  "avatar": "https://cdn.example.com/avatars/user_9x8y7z6w.jpg",
+                  "dateOfBirth": "1992-05-18",
+                  "gender": "male",
+                  "locale": "vi-VN",
+                  "emailVerified": true,
+                  "phoneVerified": true,
+                  "createdAt": "2024-03-15T07:20:00Z",
+                  "updatedAt": "2026-05-20T11:45:00Z"
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Profile"],
+        "summary": "Replace profile",
+        "operationId": "replaceProfile",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Profile" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "patch": {
+        "tags": ["Profile"],
+        "summary": "Partially update profile",
+        "operationId": "patchProfile",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchProfileRequest" },
+              "example": {
+                "phone": "+84987654321",
+                "locale": "en-US"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile partially updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Profile" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/profile/addresses": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "List addresses",
+        "operationId": "listAddresses",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Shipping address list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Address" }
+                },
+                "example": [
+                  {
+                    "id": "addr_h5i6j7k8",
+                    "label": "Home",
+                    "recipientName": "John Doe",
+                    "phone": "+84901234567",
+                    "street": "123 Main Street",
+                    "ward": "Downtown",
+                    "district": "District 1",
+                    "city": "Ho Chi Minh City",
+                    "country": "VN",
+                    "postalCode": "700000",
+                    "isDefault": true
+                  }
+                ]
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Profile"],
+        "summary": "Create a new address",
+        "operationId": "createAddress",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateAddressRequest" },
+              "example": {
+                "label": "Office",
+                "recipientName": "John Doe",
+                "phone": "+84901234567",
+                "street": "45 Business Avenue",
+                "ward": "Downtown",
+                "district": "District 1",
+                "city": "Ho Chi Minh City",
+                "country": "VN",
+                "postalCode": "700000",
+                "isDefault": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Address created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Address" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/profile/addresses/{addressId}": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get address details",
+        "operationId": "getAddress",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/AddressIdParam" }],
+        "responses": {
+          "200": {
+            "description": "Address details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Address" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Profile"],
+        "summary": "Replace address",
+        "operationId": "replaceAddress",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/AddressIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateAddressRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Address" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "patch": {
+        "tags": ["Profile"],
+        "summary": "Partially update address",
+        "operationId": "patchAddress",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/AddressIdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PatchAddressRequest" },
+              "example": {
+                "isDefault": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address partially updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Address" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Profile"],
+        "summary": "Delete address",
+        "operationId": "deleteAddress",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/AddressIdParam" }],
+        "responses": {
+          "204": { "description": "Address deleted" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Internal error code",
+            "example": "RESOURCE_NOT_FOUND"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "Product not found with the given ID"
+          },
+          "details": {
+            "type": "array",
+            "description": "Validation error details (if any)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            }
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Request trace ID",
+            "example": "a3f2c1b0-9d8e-7f6a-5b4c-3d2e1f0a9b8c"
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["page", "limit", "total", "totalPages"],
+        "properties": {
+          "page": { "type": "integer", "minimum": 1, "example": 1 },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "example": 20 },
+          "total": { "type": "integer", "minimum": 0, "example": 100 },
+          "totalPages": { "type": "integer", "minimum": 0, "example": 5 }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": ["id", "name", "slug", "price", "currency", "category", "stock", "sku", "status", "createdAt", "updatedAt"],
+        "properties": {
+          "id": { "type": "string", "example": "prod_8f3a2b1c" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 255, "example": "Bluetooth Headphones Pro X" },
+          "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "example": "bluetooth-headphones-pro-x" },
+          "description": { "type": "string", "maxLength": 2000 },
+          "price": { "type": "number", "format": "double", "minimum": 0, "example": 2490000 },
+          "currency": { "type": "string", "enum": ["VND", "USD", "EUR"], "example": "VND" },
+          "category": { "type": "string", "enum": ["electronics", "fashion", "home", "beauty", "sports"], "example": "electronics" },
+          "stock": { "type": "integer", "minimum": 0, "example": 128 },
+          "sku": { "type": "string", "example": "SKU-BT-PROX-001" },
+          "images": {
+            "type": "array",
+            "items": { "type": "string", "format": "uri" }
+          },
+          "status": { "type": "string", "enum": ["active", "inactive", "archived"], "example": "active" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateProductRequest": {
+        "type": "object",
+        "required": ["name", "price", "currency", "category", "stock", "sku"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "description": { "type": "string", "maxLength": 2000 },
+          "price": { "type": "number", "format": "double", "minimum": 0 },
+          "currency": { "type": "string", "enum": ["VND", "USD", "EUR"] },
+          "category": { "type": "string", "enum": ["electronics", "fashion", "home", "beauty", "sports"] },
+          "stock": { "type": "integer", "minimum": 0 },
+          "sku": { "type": "string" },
+          "images": {
+            "type": "array",
+            "items": { "type": "string", "format": "uri" }
+          }
+        }
+      },
+      "UpdateProductRequest": {
+        "allOf": [
+          { "$ref": "#/components/schemas/CreateProductRequest" },
+          {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": { "type": "string", "enum": ["active", "inactive", "archived"] }
+            }
+          }
+        ]
+      },
+      "PatchProductRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "description": { "type": "string", "maxLength": 2000 },
+          "price": { "type": "number", "format": "double", "minimum": 0 },
+          "stock": { "type": "integer", "minimum": 0 },
+          "status": { "type": "string", "enum": ["active", "inactive", "archived"] },
+          "images": {
+            "type": "array",
+            "items": { "type": "string", "format": "uri" }
+          }
+        }
+      },
+      "ProductListResponse": {
+        "type": "object",
+        "required": ["data", "pagination"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Product" }
+          },
+          "pagination": { "$ref": "#/components/schemas/Pagination" }
+        }
+      },
+      "CartItem": {
+        "type": "object",
+        "required": ["id", "productId", "productName", "quantity", "unitPrice", "subtotal"],
+        "properties": {
+          "id": { "type": "string", "example": "item_f4e5d6c7" },
+          "productId": { "type": "string", "example": "prod_8f3a2b1c" },
+          "productName": { "type": "string", "example": "Bluetooth Headphones Pro X" },
+          "quantity": { "type": "integer", "minimum": 1, "example": 1 },
+          "unitPrice": { "type": "number", "format": "double", "minimum": 0, "example": 2490000 },
+          "subtotal": { "type": "number", "format": "double", "minimum": 0, "example": 2490000 }
+        }
+      },
+      "Cart": {
+        "type": "object",
+        "required": ["id", "userId", "items", "itemCount", "subtotal", "total", "currency", "updatedAt"],
+        "properties": {
+          "id": { "type": "string", "example": "cart_a1b2c3d4" },
+          "userId": { "type": "string", "example": "user_9x8y7z6w" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CartItem" }
+          },
+          "itemCount": { "type": "integer", "minimum": 0, "example": 3 },
+          "subtotal": { "type": "number", "format": "double", "minimum": 0, "example": 3268000 },
+          "discount": { "type": "number", "format": "double", "minimum": 0, "example": 268000 },
+          "total": { "type": "number", "format": "double", "minimum": 0, "example": 3000000 },
+          "currency": { "type": "string", "enum": ["VND", "USD", "EUR"], "example": "VND" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AddCartItemRequest": {
+        "type": "object",
+        "required": ["productId", "quantity"],
+        "properties": {
+          "productId": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1, "default": 1 }
+        }
+      },
+      "UpdateCartItemRequest": {
+        "type": "object",
+        "required": ["quantity"],
+        "properties": {
+          "quantity": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "PatchCartItemRequest": {
+        "type": "object",
+        "properties": {
+          "quantity": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "required": ["id", "orderId", "userId", "amount", "currency", "method", "status", "createdAt"],
+        "properties": {
+          "id": { "type": "string", "example": "pay_m3n4o5p6" },
+          "orderId": { "type": "string", "example": "ord_q7r8s9t0" },
+          "userId": { "type": "string", "example": "user_9x8y7z6w" },
+          "amount": { "type": "number", "format": "double", "minimum": 0, "example": 3000000 },
+          "currency": { "type": "string", "enum": ["VND", "USD", "EUR"], "example": "VND" },
+          "method": {
+            "type": "string",
+            "enum": ["credit_card", "debit_card", "momo", "vnpay", "bank_transfer", "cod"],
+            "example": "momo"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed", "cancelled", "refunded"],
+            "example": "completed"
+          },
+          "paymentUrl": { "type": "string", "format": "uri", "nullable": true },
+          "transactionRef": { "type": "string", "nullable": true, "example": "TXN-20260610-88421" },
+          "paidAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreatePaymentRequest": {
+        "type": "object",
+        "required": ["orderId", "amount", "currency", "method"],
+        "properties": {
+          "orderId": { "type": "string" },
+          "amount": { "type": "number", "format": "double", "minimum": 0 },
+          "currency": { "type": "string", "enum": ["VND", "USD", "EUR"] },
+          "method": {
+            "type": "string",
+            "enum": ["credit_card", "debit_card", "momo", "vnpay", "bank_transfer", "cod"]
+          },
+          "returnUrl": { "type": "string", "format": "uri" },
+          "cancelUrl": { "type": "string", "format": "uri" }
+        }
+      },
+      "UpdatePaymentRequest": {
+        "type": "object",
+        "required": ["amount", "currency", "method", "status"],
+        "properties": {
+          "amount": { "type": "number", "format": "double", "minimum": 0 },
+          "currency": { "type": "string", "enum": ["VND", "USD", "EUR"] },
+          "method": {
+            "type": "string",
+            "enum": ["credit_card", "debit_card", "momo", "vnpay", "bank_transfer", "cod"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed", "cancelled", "refunded"]
+          },
+          "transactionRef": { "type": "string" }
+        }
+      },
+      "PatchPaymentRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed", "cancelled", "refunded"]
+          },
+          "transactionRef": { "type": "string" }
+        }
+      },
+      "PaymentListResponse": {
+        "type": "object",
+        "required": ["data", "pagination"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Payment" }
+          },
+          "pagination": { "$ref": "#/components/schemas/Pagination" }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "required": ["id", "email", "firstName", "lastName", "locale", "emailVerified", "createdAt", "updatedAt"],
+        "properties": {
+          "id": { "type": "string", "example": "user_9x8y7z6w" },
+          "email": { "type": "string", "format": "email", "example": "john.doe@example.com" },
+          "firstName": { "type": "string", "example": "John" },
+          "lastName": { "type": "string", "example": "Doe" },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$", "example": "+84901234567" },
+          "avatar": { "type": "string", "format": "uri" },
+          "dateOfBirth": { "type": "string", "format": "date", "example": "1992-05-18" },
+          "gender": { "type": "string", "enum": ["male", "female", "other", "prefer_not_to_say"] },
+          "locale": { "type": "string", "example": "vi-VN" },
+          "emailVerified": { "type": "boolean", "example": true },
+          "phoneVerified": { "type": "boolean", "example": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "required": ["firstName", "lastName", "locale"],
+        "properties": {
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$" },
+          "avatar": { "type": "string", "format": "uri" },
+          "dateOfBirth": { "type": "string", "format": "date" },
+          "gender": { "type": "string", "enum": ["male", "female", "other", "prefer_not_to_say"] },
+          "locale": { "type": "string" }
+        }
+      },
+      "PatchProfileRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$" },
+          "avatar": { "type": "string", "format": "uri" },
+          "dateOfBirth": { "type": "string", "format": "date" },
+          "gender": { "type": "string", "enum": ["male", "female", "other", "prefer_not_to_say"] },
+          "locale": { "type": "string" }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "required": ["id", "label", "recipientName", "phone", "street", "city", "country", "isDefault"],
+        "properties": {
+          "id": { "type": "string", "example": "addr_h5i6j7k8" },
+          "label": { "type": "string", "example": "Home" },
+          "recipientName": { "type": "string", "example": "John Doe" },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$", "example": "+84901234567" },
+          "street": { "type": "string", "example": "123 Main Street" },
+          "ward": { "type": "string", "example": "Downtown" },
+          "district": { "type": "string", "example": "District 1" },
+          "city": { "type": "string", "example": "Ho Chi Minh City" },
+          "country": { "type": "string", "minLength": 2, "maxLength": 2, "example": "VN" },
+          "postalCode": { "type": "string", "example": "700000" },
+          "isDefault": { "type": "boolean", "example": true }
+        }
+      },
+      "CreateAddressRequest": {
+        "type": "object",
+        "required": ["label", "recipientName", "phone", "street", "city", "country"],
+        "properties": {
+          "label": { "type": "string" },
+          "recipientName": { "type": "string" },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$" },
+          "street": { "type": "string" },
+          "ward": { "type": "string" },
+          "district": { "type": "string" },
+          "city": { "type": "string" },
+          "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+          "postalCode": { "type": "string" },
+          "isDefault": { "type": "boolean", "default": false }
+        }
+      },
+      "UpdateAddressRequest": {
+        "allOf": [{ "$ref": "#/components/schemas/CreateAddressRequest" }]
+      },
+      "PatchAddressRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "recipientName": { "type": "string" },
+          "phone": { "type": "string", "pattern": "^\\+[1-9]\\d{6,14}$" },
+          "street": { "type": "string" },
+          "ward": { "type": "string" },
+          "district": { "type": "string" },
+          "city": { "type": "string" },
+          "country": { "type": "string", "minLength": 2, "maxLength": 2 },
+          "postalCode": { "type": "string" },
+          "isDefault": { "type": "boolean" }
+        }
+      }
+    },
+    "parameters": {
+      "ProductIdParam": {
+        "name": "productId",
+        "in": "path",
+        "required": true,
+        "description": "Unique product identifier",
+        "schema": { "type": "string", "example": "prod_8f3a2b1c" }
+      },
+      "CartItemIdParam": {
+        "name": "itemId",
+        "in": "path",
+        "required": true,
+        "description": "Cart item identifier",
+        "schema": { "type": "string", "example": "item_f4e5d6c7" }
+      },
+      "PaymentIdParam": {
+        "name": "paymentId",
+        "in": "path",
+        "required": true,
+        "description": "Payment transaction identifier",
+        "schema": { "type": "string", "example": "pay_m3n4o5p6" }
+      },
+      "AddressIdParam": {
+        "name": "addressId",
+        "in": "path",
+        "required": true,
+        "description": "Shipping address identifier",
+        "schema": { "type": "string", "example": "addr_h5i6j7k8" }
+      },
+      "PageParam": {
+        "name": "page",
+        "in": "query",
+        "description": "Page number (starts at 1)",
+        "schema": { "type": "integer", "minimum": 1, "default": 1 }
+      },
+      "LimitParam": {
+        "name": "limit",
+        "in": "query",
+        "description": "Number of records per page",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+      },
+      "CategoryParam": {
+        "name": "category",
+        "in": "query",
+        "description": "Filter by product category",
+        "schema": {
+          "type": "string",
+          "enum": ["electronics", "fashion", "home", "beauty", "sports"]
+        }
+      },
+      "SearchParam": {
+        "name": "q",
+        "in": "query",
+        "description": "Product search keyword",
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "PaymentStatusParam": {
+        "name": "status",
+        "in": "query",
+        "description": "Filter by payment status",
+        "schema": {
+          "type": "string",
+          "enum": ["pending", "processing", "completed", "failed", "cancelled", "refunded"]
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Invalid request",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "VALIDATION_ERROR",
+              "message": "Input validation failed",
+              "details": [
+                { "field": "quantity", "message": "Must be greater than 0" }
+              ],
+              "traceId": "b4c5d6e7-f8a9-0b1c-2d3e-4f5a6b7c8d9e"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthenticated or invalid token",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "UNAUTHORIZED",
+              "message": "Authentication token is invalid or expired",
+              "traceId": "c5d6e7f8-a9b0-1c2d-3e4f-5a6b7c8d9e0f"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Access denied",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "FORBIDDEN",
+              "message": "You do not have permission to perform this action",
+              "traceId": "d6e7f8a9-b0c1-2d3e-4f5a-6b7c8d9e0f1a"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "RESOURCE_NOT_FOUND",
+              "message": "The requested resource was not found",
+              "traceId": "e7f8a9b0-c1d2-3e4f-5a6b-7c8d9e0f1a2b"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Data conflict",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "CONFLICT",
+              "message": "Resource already exists or state does not allow this operation",
+              "traceId": "f8a9b0c1-d2e3-4f5a-6b7c-8d9e0f1a2b3c"
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "Payment failed or requires additional confirmation",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "PAYMENT_REQUIRED",
+              "message": "Unable to process payment with the selected method",
+              "traceId": "a9b0c1d2-e3f4-5a6b-7c8d-9e0f1a2b3c4d"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": {
+              "code": "INTERNAL_ERROR",
+              "message": "An unexpected error occurred. Please try again later",
+              "traceId": "b0c1d2e3-f4a5-6b7c-8d9e-0f1a2b3c4d5e"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from the login endpoint"
+      },
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key for server-to-server integration"
+      }
+    },
+    "examples": {
+      "ProductExample": {
+        "summary": "Sample product",
+        "value": {
+          "id": "prod_8f3a2b1c",
+          "name": "Bluetooth Headphones Pro X",
+          "slug": "bluetooth-headphones-pro-x",
+          "price": 2490000,
+          "currency": "VND",
+          "category": "electronics",
+          "stock": 128,
+          "sku": "SKU-BT-PROX-001",
+          "status": "active"
+        }
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "description": "Request limit for the time window",
+        "schema": { "type": "integer", "example": 1000 }
+      },
+      "X-RateLimit-Remaining": {
+        "description": "Remaining requests",
+        "schema": { "type": "integer", "example": 998 }
+      },
+      "X-Request-Id": {
+        "description": "Unique request identifier",
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] }
+  ]
+}
