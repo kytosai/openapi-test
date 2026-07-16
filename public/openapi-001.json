@@ -52,7 +52,7 @@
     }
   ],
   "paths": {
-    "/products": {
+    "/products-v1": {
       "get": {
         "tags": [
           "Products"
@@ -76,7 +76,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Product list",
+            "description": "Get product list",
             "content": {
               "application/json": {
                 "schema": {
